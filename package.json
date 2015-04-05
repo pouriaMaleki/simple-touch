@@ -1,6 +1,6 @@
 {
   "name": "simple-touch",
-  "version": "0.1.0-beta.3",
+  "version": "0.1.0-beta.4",
   "description": "Simple library to manage touch events",
   "main": "scripts/js/lib/SimpleTouch.js",
   "dependencies": {
