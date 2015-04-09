@@ -1,9 +1,15 @@
 (work in progress)
 
+High performance and easy to use with minimal code to manage Touch.
+
+
 I think this is going somewhere, I make another way of listening to touch event in very simple code, I just check where touched, then it find the `id` of your element in events if you bind some.
 
 
-Work in progress and I have so much to do, so I just create that for my Corodva Music Player App (named Wikiseda on google play) and it work perfect on Webkit.
+Work in progress and I have so much to do, so I just create that for my Corodva Music Player App (named Wikiseda on google play) and it work perfect on Webkit and IE10+. (Also added mouse as fallback for touch)
+
+
+Fork and pull requests are highly welcome!
 
 
 ### Development

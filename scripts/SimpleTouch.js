@@ -7,119 +7,139 @@ SimpleTouch = (function() {
     this._tapListeners = [];
     this._panListeners = [];
     if (window.navigator.msPointerEnabled) {
-      this.node.addEventListener("MSPointerDown", (function(_this) {
+      this.touchDown = false;
+      this.node.addEventListener("MSHoldVisual", function(e) {
+        return e.preventDefault();
+      }, false);
+      this.node.addEventListener("contextmenu", function(e) {
+        return e.preventDefault();
+      }, false);
+      this.node.addEventListener('MSPointerDown', (function(_this) {
         return function(event) {
-          var listener, prospect, tapListener, _i, _len;
-          prospect = _this._checkProspect(event.target, _this._tapListeners);
-          if (prospect !== false) {
-            tapListener = _this._tapListeners[prospect.id];
-            event.listener = prospect;
-            for (_i = 0, _len = tapListener.length; _i < _len; _i++) {
-              listener = tapListener[_i];
-              listener.callStart(event);
-            }
-          }
+          _this.touchDown = true;
+          return _this._handleTouchStart();
         };
       })(this));
-      this.node.addEventListener("MSPointerMove", (function(_this) {
+      this.node.addEventListener('MSPointerMove', (function(_this) {
         return function(event) {
-          var listener, prospect, tapListener, _i, _len;
-          prospect = _this._checkProspect(event.target, _this._tapListeners);
-          if (prospect !== false) {
-            tapListener = _this._tapListeners[prospect.id];
-            event.listener = prospect;
-            for (_i = 0, _len = tapListener.length; _i < _len; _i++) {
-              listener = tapListener[_i];
-              listener.callCancel(event);
-            }
+          if (_this.touchDown === false) {
+            return;
           }
+          return _this._handleTouchMove();
         };
       })(this));
-      this.node.addEventListener("MSPointerUp", (function(_this) {
+      this.node.addEventListener('MSPointerUp', (function(_this) {
         return function(event) {
-          var listener, prospect, tapListener, _i, _len;
-          prospect = _this._checkProspect(event.target, _this._tapListeners);
-          if (prospect !== false) {
-            tapListener = _this._tapListeners[prospect.id];
-            event.listener = prospect;
-            for (_i = 0, _len = tapListener.length; _i < _len; _i++) {
-              listener = tapListener[_i];
-              listener.callDone(event);
-            }
-          }
+          _this.touchDown = false;
+          return _this._handleTouchEnd();
         };
       })(this));
     }
     this.node.addEventListener('touchstart', (function(_this) {
       return function(event) {
-        var listener, panListener, prospect, tapListener, _i, _j, _len, _len1;
-        prospect = _this._checkProspect(event.target, _this._tapListeners);
-        if (prospect !== false) {
-          tapListener = _this._tapListeners[prospect.id];
-          event.listener = prospect;
-          for (_i = 0, _len = tapListener.length; _i < _len; _i++) {
-            listener = tapListener[_i];
-            listener.callStart(event);
-          }
-        }
-        prospect = _this._checkProspect(event.target, _this._panListeners);
-        if (prospect !== false) {
-          panListener = _this._panListeners[prospect.id];
-          event.listener = prospect;
-          for (_j = 0, _len1 = panListener.length; _j < _len1; _j++) {
-            listener = panListener[_j];
-            listener.callStart(event);
-          }
-        }
+        return _this._handleTouchStart();
       };
     })(this));
     this.node.addEventListener('touchmove', (function(_this) {
       return function(event) {
-        var listener, panListener, prospect, tapListener, _i, _j, _len, _len1;
-        prospect = _this._checkProspect(event.target, _this._tapListeners);
-        if (prospect !== false) {
-          tapListener = _this._tapListeners[prospect.id];
-          event.listener = prospect;
-          for (_i = 0, _len = tapListener.length; _i < _len; _i++) {
-            listener = tapListener[_i];
-            listener.callCancel(event);
-          }
-        }
-        prospect = _this._checkProspect(event.target, _this._panListeners);
-        if (prospect !== false) {
-          panListener = _this._panListeners[prospect.id];
-          event.listener = prospect;
-          for (_j = 0, _len1 = panListener.length; _j < _len1; _j++) {
-            listener = panListener[_j];
-            listener.callPan(event);
-          }
-        }
+        return _this._handleTouchMove();
       };
     })(this));
     this.node.addEventListener('touchend', (function(_this) {
       return function(event) {
-        var listener, panListener, prospect, tapListener, _i, _j, _len, _len1;
-        prospect = _this._checkProspect(event.target, _this._tapListeners);
-        if (prospect !== false) {
-          tapListener = _this._tapListeners[prospect.id];
-          event.listener = prospect;
-          for (_i = 0, _len = tapListener.length; _i < _len; _i++) {
-            listener = tapListener[_i];
-            listener.callDone(event);
-          }
-        }
-        prospect = _this._checkProspect(event.target, _this._panListeners);
-        if (prospect !== false) {
-          panListener = _this._panListeners[prospect.id];
-          event.listener = prospect;
-          for (_j = 0, _len1 = panListener.length; _j < _len1; _j++) {
-            listener = panListener[_j];
-            listener.callEnd(event);
-          }
-        }
+        return _this._handleTouchEnd();
       };
     })(this));
+    if (window.ontouchstart === void 0) {
+      this.touchSimulateDown = false;
+      this.node.addEventListener('mousedown', (function(_this) {
+        return function(event) {
+          _this.touchSimulateDown = true;
+          return _this._handleTouchStart();
+        };
+      })(this));
+      this.node.addEventListener('mousemove', (function(_this) {
+        return function(event) {
+          if (_this.touchSimulateDown === false) {
+            return;
+          }
+          return _this._handleTouchMove();
+        };
+      })(this));
+      this.node.addEventListener('mouseup', (function(_this) {
+        return function(event) {
+          _this.touchSimulateDown = false;
+          return _this._handleTouchEnd();
+        };
+      })(this));
+    }
   }
+
+  SimpleTouch.prototype._handleTouchStart = function() {
+    var listener, panListener, prospect, tapListener, _i, _j, _len, _len1;
+    prospect = this._checkProspect(event.target, this._tapListeners);
+    if (prospect !== false) {
+      tapListener = this._tapListeners[prospect.id];
+      event.listener = prospect;
+      for (_i = 0, _len = tapListener.length; _i < _len; _i++) {
+        listener = tapListener[_i];
+        listener.callStart(event);
+      }
+    }
+    prospect = this._checkProspect(event.target, this._panListeners);
+    if (prospect !== false) {
+      panListener = this._panListeners[prospect.id];
+      event.listener = prospect;
+      for (_j = 0, _len1 = panListener.length; _j < _len1; _j++) {
+        listener = panListener[_j];
+        listener.callStart(event);
+      }
+    }
+  };
+
+  SimpleTouch.prototype._handleTouchMove = function() {
+    var listener, panListener, prospect, tapListener, _i, _j, _len, _len1;
+    prospect = this._checkProspect(event.target, this._tapListeners);
+    if (prospect !== false) {
+      tapListener = this._tapListeners[prospect.id];
+      event.listener = prospect;
+      for (_i = 0, _len = tapListener.length; _i < _len; _i++) {
+        listener = tapListener[_i];
+        listener.callCancel(event);
+      }
+    }
+    prospect = this._checkProspect(event.target, this._panListeners);
+    if (prospect !== false) {
+      panListener = this._panListeners[prospect.id];
+      event.listener = prospect;
+      for (_j = 0, _len1 = panListener.length; _j < _len1; _j++) {
+        listener = panListener[_j];
+        listener.callPan(event);
+      }
+    }
+  };
+
+  SimpleTouch.prototype._handleTouchEnd = function() {
+    var listener, panListener, prospect, tapListener, _i, _j, _len, _len1;
+    prospect = this._checkProspect(event.target, this._tapListeners);
+    if (prospect !== false) {
+      tapListener = this._tapListeners[prospect.id];
+      event.listener = prospect;
+      for (_i = 0, _len = tapListener.length; _i < _len; _i++) {
+        listener = tapListener[_i];
+        listener.callDone(event);
+      }
+    }
+    prospect = this._checkProspect(event.target, this._panListeners);
+    if (prospect !== false) {
+      panListener = this._panListeners[prospect.id];
+      event.listener = prospect;
+      for (_j = 0, _len1 = panListener.length; _j < _len1; _j++) {
+        listener = panListener[_j];
+        listener.callEnd(event);
+      }
+    }
+  };
 
   SimpleTouch.prototype._checkProspect = function(prospect, listeners) {
     while (prospect) {
@@ -161,6 +181,8 @@ TapListener = (function() {
   function TapListener(milisec) {
     this.milisec = milisec != null ? milisec : 300;
     this._tapStart = false;
+    this.touchPosX = this.touchTotalPosX = this.touchStartPosX = 0;
+    this.touchPosY = this.touchTotalPosY = this.touchStartPosY = 0;
   }
 
   TapListener.prototype.onStart = function(cbStart) {
@@ -189,6 +211,8 @@ TapListener = (function() {
   };
 
   TapListener.prototype.callStart = function(event) {
+    event.startX = this.touchStartPosX = (event.clientX != null ? event.clientX : event.touches[0].clientX);
+    event.startY = this.touchStartPosY = (event.clientY != null ? event.clientY : event.touches[0].clientY);
     if (this.cbStart != null) {
       this.cbStart(event);
     }
@@ -196,18 +220,36 @@ TapListener = (function() {
   };
 
   TapListener.prototype.callCancel = function(event) {
+    event.movementX = (event.clientX != null ? event.clientX : event.touches[0].clientX) - this.touchPosX;
+    event.movementY = (event.clientY != null ? event.clientY : event.touches[0].clientY) - this.touchPosY;
+    event.startX = this.touchStartPosX;
+    event.startY = this.touchStartPosY;
+    this.touchPosX = (event.clientX != null ? event.clientX : event.touches[0].clientX);
+    this.touchPosY = (event.clientY != null ? event.clientY : event.touches[0].clientY);
+    this.touchTotalPosX += this.touchPosX;
+    this.touchTotalPosY += this.touchPosY;
+    event.totalX = this.touchTotalPosX = this.touchStartPosX - this.touchPosX;
+    event.totalY = this.touchTotalPosY = this.touchStartPosY - this.touchPosY;
     event.time = Date.now() - this._tapStart;
-    if (this.cbCancel != null) {
-      this.cbCancel(event);
+    if (Math.abs(event.totalX) > 10 || Math.abs(event.totalY) > 10) {
+      if (this.cbCancel != null) {
+        this.cbCancel(event);
+      }
+      this.callEnd(event);
+      this._tapStart = false;
     }
-    this.callEnd(event);
-    this._tapStart = false;
   };
 
   TapListener.prototype.callEnd = function(event) {
+    event.startX = this.touchStartPosX;
+    event.startY = this.touchStartPosY;
+    event.totalX = this.touchTotalPosX;
+    event.totalY = this.touchTotalPosY;
     if (this.cbEnd != null) {
       this.cbEnd(event);
     }
+    this.touchPosX = this.touchTotalPosX = this.touchStartPosX = 0;
+    this.touchPosY = this.touchTotalPosY = this.touchStartPosY = 0;
   };
 
   TapListener.prototype.callDone = function(event) {
@@ -256,8 +298,8 @@ PanListener = (function() {
   };
 
   PanListener.prototype.callStart = function(event) {
-    event.startX = this.touchStartPosX = event.touches[0].clientX;
-    event.startY = this.touchStartPosY = event.touches[0].clientY;
+    event.startX = this.touchStartPosX = (event.clientX != null ? event.clientX : event.touches[0].clientX);
+    event.startY = this.touchStartPosY = (event.clientY != null ? event.clientY : event.touches[0].clientY);
     if (this.cbStart != null) {
       this.cbStart(event);
     }
@@ -276,13 +318,12 @@ PanListener = (function() {
   };
 
   PanListener.prototype.callPan = function(event) {
-    var totalX;
-    event.movementX = event.touches[0].clientX - this.touchPosX;
-    event.movementY = event.touches[0].clientY - this.touchPosY;
+    event.movementX = (event.clientX != null ? event.clientX : event.touches[0].clientX) - this.touchPosX;
+    event.movementY = (event.clientY != null ? event.clientY : event.touches[0].clientY) - this.touchPosY;
     event.startX = this.touchStartPosX;
     event.startY = this.touchStartPosY;
-    totalX = this.touchPosX = event.touches[0].clientX;
-    this.touchPosY = event.touches[0].clientY;
+    this.touchPosX = (event.clientX != null ? event.clientX : event.touches[0].clientX);
+    this.touchPosY = (event.clientY != null ? event.clientY : event.touches[0].clientY);
     this.touchTotalPosX += this.touchPosX;
     this.touchTotalPosY += this.touchPosY;
     event.totalX = this.touchTotalPosX = this.touchStartPosX - this.touchPosX;

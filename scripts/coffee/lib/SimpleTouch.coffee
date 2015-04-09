@@ -12,163 +12,156 @@ class SimpleTouch
 
 		if window.navigator.msPointerEnabled
 
-			@node.addEventListener "MSPointerDown", (event) =>
+			@touchDown = false
 
-				prospect = @_checkProspect event.target, @_tapListeners
+			@node.addEventListener("MSHoldVisual", (e) ->
+				e.preventDefault()
+			, false)
 
-				if prospect isnt false
+			@node.addEventListener("contextmenu", (e) ->
+				e.preventDefault()
+			, false)
 
-					tapListener = @_tapListeners[prospect.id]
+			@node.addEventListener 'MSPointerDown', (event)  =>
 
-					event.listener = prospect
+				@touchDown = true
 
-					for listener in tapListener
+				@_handleTouchStart()
 
-						listener.callStart event
+			@node.addEventListener 'MSPointerMove', (event)  =>
 
-				return
+				if @touchDown is false
 
-			@node.addEventListener "MSPointerMove", (event)  =>
+					return
 
-				prospect = @_checkProspect event.target, @_tapListeners
+				@_handleTouchMove()
 
-				if prospect isnt false
+			@node.addEventListener 'MSPointerUp', (event)  =>
 
-					tapListener = @_tapListeners[prospect.id]
+				@touchDown = false
 
-					event.listener = prospect
-
-					for listener in tapListener
-
-						listener.callCancel event
-
-				return
-
-			@node.addEventListener "MSPointerUp", (event)  =>
-
-				prospect = @_checkProspect event.target, @_tapListeners
-
-				if prospect isnt false
-
-					tapListener = @_tapListeners[prospect.id]
-
-					event.listener = prospect
-
-					for listener in tapListener
-
-						listener.callDone event
-
-				return
+				@_handleTouchEnd()
 
 		@node.addEventListener 'touchstart', (event)  =>
 
-			prospect = @_checkProspect event.target, @_tapListeners
-
-			if prospect isnt false
-
-				tapListener = @_tapListeners[prospect.id]
-
-				event.listener = prospect
-
-				for listener in tapListener
-
-					listener.callStart event
-
-			prospect = @_checkProspect event.target, @_panListeners
-
-			if prospect isnt false
-
-				panListener = @_panListeners[prospect.id]
-
-				event.listener = prospect
-
-				for listener in panListener
-
-					listener.callStart event
-
-			return
+			@_handleTouchStart()
 
 		@node.addEventListener 'touchmove', (event)  =>
 
-			prospect = @_checkProspect event.target, @_tapListeners
-
-			if prospect isnt false
-
-				tapListener = @_tapListeners[prospect.id]
-
-				event.listener = prospect
-
-				for listener in tapListener
-
-					listener.callCancel event
-
-			prospect = @_checkProspect event.target, @_panListeners
-
-			if prospect isnt false
-
-				panListener = @_panListeners[prospect.id]
-
-				event.listener = prospect
-
-				for listener in panListener
-
-					listener.callPan event
-
-			# prospect = @_checkProspect event.target, @_panListeners
-
-			# if prospect isnt false
-
-			# 	panListener = @_panListeners[prospect.id]
-
-			# 	for listener in panListener
-
-			# 		listener.move event, event.touches[0].clientX - touchPosX, event.touches[0].clientY - touchPosY
-
-			# touchPosX = event.touches[0].clientX
-			# touchPosY = event.touches[0].clientY
-
-			return
+			@_handleTouchMove()
 
 		@node.addEventListener 'touchend', (event)  =>
 
-			prospect = @_checkProspect event.target, @_tapListeners
+			@_handleTouchEnd()
 
-			if prospect isnt false
+		if window.ontouchstart is undefined
 
-				tapListener = @_tapListeners[prospect.id]
+			@touchSimulateDown = false
 
-				event.listener = prospect
+			@node.addEventListener 'mousedown', (event)  =>
 
-				for listener in tapListener
+				@touchSimulateDown = true
 
-					listener.callDone event
+				@_handleTouchStart()
 
-			prospect = @_checkProspect event.target, @_panListeners
+			@node.addEventListener 'mousemove', (event)  =>
 
-			if prospect isnt false
+				if @touchSimulateDown is false
 
-				panListener = @_panListeners[prospect.id]
+					return
 
-				event.listener = prospect
+				@_handleTouchMove()
 
-				for listener in panListener
+			@node.addEventListener 'mouseup', (event)  =>
 
-					listener.callEnd event
+				@touchSimulateDown = false
 
-			# if move is true
-
-			# 	prospect = @_checkProspect event.target, @_panListeners
-
-			# 	if prospect isnt false
-
-			# 	 	panListener = @_panListeners[prospect.id]
-
-			# 		for listener in panListener
-
-			# 			listener.end event, touchPosX - touchStartPosX, touchPosY - touchStartPosY
+				@_handleTouchEnd()
 
 
-			return
+	_handleTouchStart: ->
+
+		prospect = @_checkProspect event.target, @_tapListeners
+
+		if prospect isnt false
+
+			tapListener = @_tapListeners[prospect.id]
+
+			event.listener = prospect
+
+			for listener in tapListener
+
+				listener.callStart event
+
+		prospect = @_checkProspect event.target, @_panListeners
+
+		if prospect isnt false
+
+			panListener = @_panListeners[prospect.id]
+
+			event.listener = prospect
+
+			for listener in panListener
+
+				listener.callStart event
+
+		return
+
+	_handleTouchMove: ->
+
+		prospect = @_checkProspect event.target, @_tapListeners
+
+		if prospect isnt false
+
+			tapListener = @_tapListeners[prospect.id]
+
+			event.listener = prospect
+
+			for listener in tapListener
+
+				listener.callCancel event
+
+		prospect = @_checkProspect event.target, @_panListeners
+
+		if prospect isnt false
+
+			panListener = @_panListeners[prospect.id]
+
+			event.listener = prospect
+
+			for listener in panListener
+
+				listener.callPan event
+
+		return
+
+	_handleTouchEnd: ->
+
+		prospect = @_checkProspect event.target, @_tapListeners
+
+		if prospect isnt false
+
+			tapListener = @_tapListeners[prospect.id]
+
+			event.listener = prospect
+
+			for listener in tapListener
+
+				listener.callDone event
+
+		prospect = @_checkProspect event.target, @_panListeners
+
+		if prospect isnt false
+
+			panListener = @_panListeners[prospect.id]
+
+			event.listener = prospect
+
+			for listener in panListener
+
+				listener.callEnd event
+
+		return
 
 	_checkProspect: (prospect, listeners) ->
 
@@ -216,6 +209,9 @@ class TapListener
 
 		@_tapStart = false
 
+		@touchPosX = @touchTotalPosX = @touchStartPosX = 0
+		@touchPosY = @touchTotalPosY = @touchStartPosY = 0
+
 	onStart: (@cbStart) ->
 
 		@
@@ -239,6 +235,9 @@ class TapListener
 
 	callStart: (event) ->
 
+		event.startX = @touchStartPosX = (if event.clientX? then event.clientX else event.touches[0].clientX )
+		event.startY = @touchStartPosY = (if event.clientY? then event.clientY else event.touches[0].clientY )
+
 		if @cbStart?
 
 			@cbStart event
@@ -249,23 +248,49 @@ class TapListener
 
 	callCancel: (event) ->
 
+		event.movementX = (if event.clientX? then event.clientX else event.touches[0].clientX ) - @touchPosX
+		event.movementY = (if event.clientY? then event.clientY else event.touches[0].clientY ) - @touchPosY
+
+		event.startX = @touchStartPosX
+		event.startY = @touchStartPosY
+
+		@touchPosX = (if event.clientX? then event.clientX else event.touches[0].clientX )
+		@touchPosY = (if event.clientY? then event.clientY else event.touches[0].clientY )
+
+		@touchTotalPosX += @touchPosX
+		@touchTotalPosY += @touchPosY
+
+		event.totalX = @touchTotalPosX = @touchStartPosX - @touchPosX
+		event.totalY = @touchTotalPosY = @touchStartPosY - @touchPosY
+
 		event.time = Date.now() - @_tapStart
 
-		if @cbCancel?
+		if Math.abs(event.totalX) > 10 or Math.abs(event.totalY) > 10
 
-			@cbCancel event
+			if @cbCancel?
 
-		@callEnd event
+				@cbCancel event
 
-		@_tapStart = false
+			@callEnd event
+
+			@_tapStart = false
 
 		return
 
 	callEnd: (event) ->
 
+		event.startX = @touchStartPosX
+		event.startY = @touchStartPosY
+
+		event.totalX = @touchTotalPosX
+		event.totalY = @touchTotalPosY
+
 		if @cbEnd?
 
 			@cbEnd event
+
+		@touchPosX = @touchTotalPosX = @touchStartPosX = 0
+		@touchPosY = @touchTotalPosY = @touchStartPosY = 0
 
 		return
 
@@ -318,8 +343,8 @@ class PanListener
 
 	callStart: (event) ->
 
-		event.startX = @touchStartPosX = event.touches[0].clientX
-		event.startY = @touchStartPosY = event.touches[0].clientY
+		event.startX = @touchStartPosX = (if event.clientX? then event.clientX else event.touches[0].clientX )
+		event.startY = @touchStartPosY = (if event.clientY? then event.clientY else event.touches[0].clientY )
 
 		if @cbStart?
 
@@ -346,16 +371,14 @@ class PanListener
 
 	callPan: (event) ->
 
-		event.movementX = event.touches[0].clientX - @touchPosX
-		event.movementY = event.touches[0].clientY - @touchPosY
+		event.movementX = (if event.clientX? then event.clientX else event.touches[0].clientX ) - @touchPosX
+		event.movementY = (if event.clientY? then event.clientY else event.touches[0].clientY ) - @touchPosY
 
 		event.startX = @touchStartPosX
 		event.startY = @touchStartPosY
 
-		totalX =
-
-		@touchPosX = event.touches[0].clientX
-		@touchPosY = event.touches[0].clientY
+		@touchPosX = (if event.clientX? then event.clientX else event.touches[0].clientX )
+		@touchPosY = (if event.clientY? then event.clientY else event.touches[0].clientY )
 
 		@touchTotalPosX += @touchPosX
 		@touchTotalPosY += @touchPosY
