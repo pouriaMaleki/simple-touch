@@ -1,23 +1,23 @@
-!function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.pg=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({"D:\\xampp\\htdocs\\simple-touch\\scripts\\js\\lib\\SimpleTouch.js":[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.pg = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var PanListener, SimpleTouch, TapListener;
 
 SimpleTouch = (function() {
   function SimpleTouch(node) {
     this.node = node;
-    this._tapListeners = [];
-    this._panListeners = [];
+    this._tapListeners = {};
+    this._panListeners = {};
     if (window.navigator.msPointerEnabled) {
       this.touchDown = false;
-      this.node.addEventListener("MSHoldVisual", function(e) {
-        return e.preventDefault();
+      this.node.addEventListener("MSHoldVisual", function(event) {
+        return event.preventDefault();
       }, false);
-      this.node.addEventListener("contextmenu", function(e) {
-        return e.preventDefault();
+      this.node.addEventListener("contextmenu", function(event) {
+        return event.preventDefault();
       }, false);
       this.node.addEventListener('MSPointerDown', (function(_this) {
         return function(event) {
           _this.touchDown = true;
-          return _this._handleTouchStart();
+          return _this._handleTouchStart(event);
         };
       })(this));
       this.node.addEventListener('MSPointerMove', (function(_this) {
@@ -25,29 +25,29 @@ SimpleTouch = (function() {
           if (_this.touchDown === false) {
             return;
           }
-          return _this._handleTouchMove();
+          return _this._handleTouchMove(event);
         };
       })(this));
       this.node.addEventListener('MSPointerUp', (function(_this) {
         return function(event) {
           _this.touchDown = false;
-          return _this._handleTouchEnd();
+          return _this._handleTouchEnd(event);
         };
       })(this));
     }
     this.node.addEventListener('touchstart', (function(_this) {
       return function(event) {
-        return _this._handleTouchStart();
+        return _this._handleTouchStart(event);
       };
     })(this));
     this.node.addEventListener('touchmove', (function(_this) {
       return function(event) {
-        return _this._handleTouchMove();
+        return _this._handleTouchMove(event);
       };
     })(this));
     this.node.addEventListener('touchend', (function(_this) {
       return function(event) {
-        return _this._handleTouchEnd();
+        return _this._handleTouchEnd(event);
       };
     })(this));
     if (window.ontouchstart === void 0) {
@@ -55,7 +55,7 @@ SimpleTouch = (function() {
       this.node.addEventListener('mousedown', (function(_this) {
         return function(event) {
           _this.touchSimulateDown = true;
-          return _this._handleTouchStart();
+          return _this._handleTouchStart(event);
         };
       })(this));
       this.node.addEventListener('mousemove', (function(_this) {
@@ -63,26 +63,26 @@ SimpleTouch = (function() {
           if (_this.touchSimulateDown === false) {
             return;
           }
-          return _this._handleTouchMove();
+          return _this._handleTouchMove(event);
         };
       })(this));
       this.node.addEventListener('mouseup', (function(_this) {
         return function(event) {
           _this.touchSimulateDown = false;
-          return _this._handleTouchEnd();
+          return _this._handleTouchEnd(event);
         };
       })(this));
     }
   }
 
-  SimpleTouch.prototype._handleTouchStart = function() {
-    var listener, panListener, prospect, tapListener, _i, _j, _len, _len1;
+  SimpleTouch.prototype._handleTouchStart = function(event) {
+    var i, j, len, len1, listener, panListener, prospect, tapListener;
     prospect = this._checkProspect(event.target, this._tapListeners);
     if (prospect !== false) {
       tapListener = this._tapListeners[prospect.id];
       event.listener = prospect;
-      for (_i = 0, _len = tapListener.length; _i < _len; _i++) {
-        listener = tapListener[_i];
+      for (i = 0, len = tapListener.length; i < len; i++) {
+        listener = tapListener[i];
         listener.callStart(event);
       }
     }
@@ -90,21 +90,21 @@ SimpleTouch = (function() {
     if (prospect !== false) {
       panListener = this._panListeners[prospect.id];
       event.listener = prospect;
-      for (_j = 0, _len1 = panListener.length; _j < _len1; _j++) {
-        listener = panListener[_j];
+      for (j = 0, len1 = panListener.length; j < len1; j++) {
+        listener = panListener[j];
         listener.callStart(event);
       }
     }
   };
 
-  SimpleTouch.prototype._handleTouchMove = function() {
-    var listener, panListener, prospect, tapListener, _i, _j, _len, _len1;
+  SimpleTouch.prototype._handleTouchMove = function(event) {
+    var i, j, len, len1, listener, panListener, prospect, tapListener;
     prospect = this._checkProspect(event.target, this._tapListeners);
     if (prospect !== false) {
       tapListener = this._tapListeners[prospect.id];
       event.listener = prospect;
-      for (_i = 0, _len = tapListener.length; _i < _len; _i++) {
-        listener = tapListener[_i];
+      for (i = 0, len = tapListener.length; i < len; i++) {
+        listener = tapListener[i];
         listener.callCancel(event);
       }
     }
@@ -112,21 +112,21 @@ SimpleTouch = (function() {
     if (prospect !== false) {
       panListener = this._panListeners[prospect.id];
       event.listener = prospect;
-      for (_j = 0, _len1 = panListener.length; _j < _len1; _j++) {
-        listener = panListener[_j];
+      for (j = 0, len1 = panListener.length; j < len1; j++) {
+        listener = panListener[j];
         listener.callPan(event);
       }
     }
   };
 
-  SimpleTouch.prototype._handleTouchEnd = function() {
-    var listener, panListener, prospect, tapListener, _i, _j, _len, _len1;
+  SimpleTouch.prototype._handleTouchEnd = function(event) {
+    var i, j, len, len1, listener, panListener, prospect, tapListener;
     prospect = this._checkProspect(event.target, this._tapListeners);
     if (prospect !== false) {
       tapListener = this._tapListeners[prospect.id];
       event.listener = prospect;
-      for (_i = 0, _len = tapListener.length; _i < _len; _i++) {
-        listener = tapListener[_i];
+      for (i = 0, len = tapListener.length; i < len; i++) {
+        listener = tapListener[i];
         listener.callDone(event);
       }
     }
@@ -134,8 +134,8 @@ SimpleTouch = (function() {
     if (prospect !== false) {
       panListener = this._panListeners[prospect.id];
       event.listener = prospect;
-      for (_j = 0, _len1 = panListener.length; _j < _len1; _j++) {
-        listener = panListener[_j];
+      for (j = 0, len1 = panListener.length; j < len1; j++) {
+        listener = panListener[j];
         listener.callEnd(event);
       }
     }
@@ -339,5 +339,5 @@ PanListener = (function() {
 
 module.exports = new SimpleTouch(document.body);
 
-},{}]},{},["D:\\xampp\\htdocs\\simple-touch\\scripts\\js\\lib\\SimpleTouch.js"])("D:\\xampp\\htdocs\\simple-touch\\scripts\\js\\lib\\SimpleTouch.js")
+},{}]},{},[1])(1)
 });

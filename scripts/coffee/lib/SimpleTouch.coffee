@@ -2,8 +2,8 @@ class SimpleTouch
 
 	constructor: (@node) ->
 
-		@_tapListeners = []
-		@_panListeners = []
+		@_tapListeners = {}
+		@_panListeners = {}
 
 		# move = false
 
@@ -14,19 +14,19 @@ class SimpleTouch
 
 			@touchDown = false
 
-			@node.addEventListener("MSHoldVisual", (e) ->
-				e.preventDefault()
+			@node.addEventListener("MSHoldVisual", (event) ->
+				event.preventDefault()
 			, false)
 
-			@node.addEventListener("contextmenu", (e) ->
-				e.preventDefault()
+			@node.addEventListener("contextmenu", (event) ->
+				event.preventDefault()
 			, false)
 
 			@node.addEventListener 'MSPointerDown', (event)  =>
 
 				@touchDown = true
 
-				@_handleTouchStart()
+				@_handleTouchStart(event)
 
 			@node.addEventListener 'MSPointerMove', (event)  =>
 
@@ -34,25 +34,25 @@ class SimpleTouch
 
 					return
 
-				@_handleTouchMove()
+				@_handleTouchMove(event)
 
 			@node.addEventListener 'MSPointerUp', (event)  =>
 
 				@touchDown = false
 
-				@_handleTouchEnd()
+				@_handleTouchEnd(event)
 
 		@node.addEventListener 'touchstart', (event)  =>
 
-			@_handleTouchStart()
+			@_handleTouchStart(event)
 
 		@node.addEventListener 'touchmove', (event)  =>
 
-			@_handleTouchMove()
+			@_handleTouchMove(event)
 
 		@node.addEventListener 'touchend', (event)  =>
 
-			@_handleTouchEnd()
+			@_handleTouchEnd(event)
 
 		if window.ontouchstart is undefined
 
@@ -62,7 +62,7 @@ class SimpleTouch
 
 				@touchSimulateDown = true
 
-				@_handleTouchStart()
+				@_handleTouchStart(event)
 
 			@node.addEventListener 'mousemove', (event)  =>
 
@@ -70,16 +70,16 @@ class SimpleTouch
 
 					return
 
-				@_handleTouchMove()
+				@_handleTouchMove(event)
 
 			@node.addEventListener 'mouseup', (event)  =>
 
 				@touchSimulateDown = false
 
-				@_handleTouchEnd()
+				@_handleTouchEnd(event)
 
 
-	_handleTouchStart: ->
+	_handleTouchStart: (event) ->
 
 		prospect = @_checkProspect event.target, @_tapListeners
 
@@ -107,7 +107,7 @@ class SimpleTouch
 
 		return
 
-	_handleTouchMove: ->
+	_handleTouchMove: (event) ->
 
 		prospect = @_checkProspect event.target, @_tapListeners
 
@@ -135,7 +135,7 @@ class SimpleTouch
 
 		return
 
-	_handleTouchEnd: ->
+	_handleTouchEnd: (event) ->
 
 		prospect = @_checkProspect event.target, @_tapListeners
 
