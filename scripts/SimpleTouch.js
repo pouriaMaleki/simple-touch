@@ -1,23 +1,23 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.pg = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var PanListener, SimpleTouch, TapListener;
 
 SimpleTouch = (function() {
   function SimpleTouch(node) {
     this.node = node;
-    this._tapListeners = {};
-    this._panListeners = {};
+    this._tapListeners = [];
+    this._panListeners = [];
+    this._panGeneralProspect = false;
     if (window.navigator.msPointerEnabled) {
       this.touchDown = false;
-      this.node.addEventListener("MSHoldVisual", function(event) {
-        return event.preventDefault();
+      this.node.addEventListener("MSHoldVisual", function(e) {
+        return e.preventDefault();
       }, false);
-      this.node.addEventListener("contextmenu", function(event) {
-        return event.preventDefault();
+      this.node.addEventListener("contextmenu", function(e) {
+        return e.preventDefault();
       }, false);
       this.node.addEventListener('MSPointerDown', (function(_this) {
         return function(event) {
           _this.touchDown = true;
-          return _this._handleTouchStart(event);
+          return _this._handleTouchStart();
         };
       })(this));
       this.node.addEventListener('MSPointerMove', (function(_this) {
@@ -25,29 +25,29 @@ SimpleTouch = (function() {
           if (_this.touchDown === false) {
             return;
           }
-          return _this._handleTouchMove(event);
+          return _this._handleTouchMove();
         };
       })(this));
       this.node.addEventListener('MSPointerUp', (function(_this) {
         return function(event) {
           _this.touchDown = false;
-          return _this._handleTouchEnd(event);
+          return _this._handleTouchEnd();
         };
       })(this));
     }
     this.node.addEventListener('touchstart', (function(_this) {
       return function(event) {
-        return _this._handleTouchStart(event);
+        return _this._handleTouchStart();
       };
     })(this));
     this.node.addEventListener('touchmove', (function(_this) {
       return function(event) {
-        return _this._handleTouchMove(event);
+        return _this._handleTouchMove();
       };
     })(this));
     this.node.addEventListener('touchend', (function(_this) {
       return function(event) {
-        return _this._handleTouchEnd(event);
+        return _this._handleTouchEnd();
       };
     })(this));
     if (window.ontouchstart === void 0) {
@@ -55,7 +55,7 @@ SimpleTouch = (function() {
       this.node.addEventListener('mousedown', (function(_this) {
         return function(event) {
           _this.touchSimulateDown = true;
-          return _this._handleTouchStart(event);
+          return _this._handleTouchStart();
         };
       })(this));
       this.node.addEventListener('mousemove', (function(_this) {
@@ -63,19 +63,19 @@ SimpleTouch = (function() {
           if (_this.touchSimulateDown === false) {
             return;
           }
-          return _this._handleTouchMove(event);
+          return _this._handleTouchMove();
         };
       })(this));
       this.node.addEventListener('mouseup', (function(_this) {
         return function(event) {
           _this.touchSimulateDown = false;
-          return _this._handleTouchEnd(event);
+          return _this._handleTouchEnd();
         };
       })(this));
     }
   }
 
-  SimpleTouch.prototype._handleTouchStart = function(event) {
+  SimpleTouch.prototype._handleTouchStart = function() {
     var i, j, len, len1, listener, panListener, prospect, tapListener;
     prospect = this._checkProspect(event.target, this._tapListeners);
     if (prospect !== false) {
@@ -90,6 +90,7 @@ SimpleTouch = (function() {
     if (prospect !== false) {
       panListener = this._panListeners[prospect.id];
       event.listener = prospect;
+      this._panGeneralProspect = prospect;
       for (j = 0, len1 = panListener.length; j < len1; j++) {
         listener = panListener[j];
         listener.callStart(event);
@@ -97,8 +98,8 @@ SimpleTouch = (function() {
     }
   };
 
-  SimpleTouch.prototype._handleTouchMove = function(event) {
-    var i, j, len, len1, listener, panListener, prospect, tapListener;
+  SimpleTouch.prototype._handleTouchMove = function() {
+    var i, j, k, len, len1, len2, listener, panListener, prospect, tapListener;
     prospect = this._checkProspect(event.target, this._tapListeners);
     if (prospect !== false) {
       tapListener = this._tapListeners[prospect.id];
@@ -117,10 +118,18 @@ SimpleTouch = (function() {
         listener.callPan(event);
       }
     }
+    if (this._panGeneralProspect !== false) {
+      panListener = this._panListeners[this._panGeneralProspect.id];
+      event.listener = this._panGeneralProspect;
+      for (k = 0, len2 = panListener.length; k < len2; k++) {
+        listener = panListener[k];
+        listener.callGeneralPan(event);
+      }
+    }
   };
 
-  SimpleTouch.prototype._handleTouchEnd = function(event) {
-    var i, j, len, len1, listener, panListener, prospect, tapListener;
+  SimpleTouch.prototype._handleTouchEnd = function() {
+    var i, j, k, len, len1, len2, listener, panListener, prospect, tapListener;
     prospect = this._checkProspect(event.target, this._tapListeners);
     if (prospect !== false) {
       tapListener = this._tapListeners[prospect.id];
@@ -138,6 +147,15 @@ SimpleTouch = (function() {
         listener = panListener[j];
         listener.callEnd(event);
       }
+    }
+    if (this._panGeneralProspect !== false) {
+      panListener = this._panListeners[this._panGeneralProspect.id];
+      event.listener = this._panGeneralProspect;
+      for (k = 0, len2 = panListener.length; k < len2; k++) {
+        listener = panListener[k];
+        listener.callGeneralEnd(event);
+      }
+      this._panGeneralProspect = false;
     }
   };
 
@@ -297,6 +315,16 @@ PanListener = (function() {
     return this;
   };
 
+  PanListener.prototype.onGeneralEnd = function(cbGeneralEnd) {
+    this.cbGeneralEnd = cbGeneralEnd;
+    return this;
+  };
+
+  PanListener.prototype.onGeneralPan = function(cbGeneralPan) {
+    this.cbGeneralPan = cbGeneralPan;
+    return this;
+  };
+
   PanListener.prototype.callStart = function(event) {
     event.startX = this.touchStartPosX = (event.clientX != null ? event.clientX : event.touches[0].clientX);
     event.startY = this.touchStartPosY = (event.clientY != null ? event.clientY : event.touches[0].clientY);
@@ -312,6 +340,18 @@ PanListener = (function() {
     event.totalY = this.touchTotalPosY;
     if (this.cbEnd != null) {
       this.cbEnd(event);
+    }
+    this.touchPosX = this.touchTotalPosX = this.touchStartPosX = 0;
+    this.touchPosY = this.touchTotalPosY = this.touchStartPosY = 0;
+  };
+
+  PanListener.prototype.callGeneralEnd = function(event) {
+    event.startX = this.touchStartPosX;
+    event.startY = this.touchStartPosY;
+    event.totalX = this.touchTotalPosX;
+    event.totalY = this.touchTotalPosY;
+    if (this.cbGeneralEnd != null) {
+      this.cbGeneralEnd(event);
     }
     this.touchPosX = this.touchTotalPosX = this.touchStartPosX = 0;
     this.touchPosY = this.touchTotalPosY = this.touchStartPosY = 0;
@@ -333,11 +373,24 @@ PanListener = (function() {
     }
   };
 
+  PanListener.prototype.callGeneralPan = function(event) {
+    event.movementX = (event.clientX != null ? event.clientX : event.touches[0].clientX) - this.touchPosX;
+    event.movementY = (event.clientY != null ? event.clientY : event.touches[0].clientY) - this.touchPosY;
+    event.startX = this.touchStartPosX;
+    event.startY = this.touchStartPosY;
+    this.touchPosX = (event.clientX != null ? event.clientX : event.touches[0].clientX);
+    this.touchPosY = (event.clientY != null ? event.clientY : event.touches[0].clientY);
+    this.touchTotalPosX += this.touchPosX;
+    this.touchTotalPosY += this.touchPosY;
+    event.totalX = this.touchTotalPosX = this.touchStartPosX - this.touchPosX;
+    event.totalY = this.touchTotalPosY = this.touchStartPosY - this.touchPosY;
+    if (this.cbGeneralPan != null) {
+      this.cbGeneralPan(event);
+    }
+  };
+
   return PanListener;
 
 })();
 
 module.exports = new SimpleTouch(document.body);
-
-},{}]},{},[1])(1)
-});
